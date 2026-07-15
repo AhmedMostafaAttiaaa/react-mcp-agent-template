@@ -1,0 +1,170 @@
+# react-mcp-agent-template
+
+A domain-agnostic ReAct agent template: a Skill Router picks relevant Skills for the current
+question, a Dynamic Prompt Builder assembles a system prompt from those Skills plus only the MCP
+tool schemas they reference, and a provider-agnostic ReAct loop drives Thought/Action/Observation
+cycles against real MCP tools. A local Streamlit UI adds file upload, vector/graph RAG over your
+own documents, and a live trace view for testing.
+
+## Runs fully offline, zero API keys
+
+With `provider: ollama` in `config.yaml` (the default), this project makes **no external network
+calls** — generation and embeddings both go through your local Ollama server, and RAG storage
+(Chroma, networkx) is disk-based. Nothing here requires a GPU or an internet connection.
+
+**Groq is entirely optional and generation-only.** It exists as a faster/bigger-model fallback for
+the ReAct loop. If you don't set `GROQ_API_KEY`, the `GroqProvider` class is simply never
+instantiated — `run.py` and the UI only build a provider for whichever one `config.yaml`/the UI
+selects, so an unset Groq key never blocks the ollama path. To use it, add `GROQ_API_KEY` to
+`.env` and set `provider: groq`. To stay fully offline, leave `provider: ollama` and never touch
+`GROQ_API_KEY` at all — the `.env.example` ships with it blank for exactly this reason.
+
+Embeddings for RAG always go through Ollama, regardless of which generation provider you pick —
+Groq is not used for embeddings or for RAG index building unless you also select it as the active
+generation provider for graph extraction.
+
+## Quickstart
+
+```bash
+python -m venv .venv
+source .venv/Scripts/activate   # Windows Git Bash; use .venv\Scripts\activate on cmd/PowerShell
+pip install -r requirements.txt
+cp .env.example .env            # defaults to OLLAMA_HOST=http://localhost:11434
+ollama pull qwen3:4b            # or any model you like — first `ollama list` entry is used by default
+ollama pull nomic-embed-text    # embedding model used by RAG
+
+python run.py "What's 12 plus 30, and what time is it?"
+```
+
+To use the UI:
+
+```bash
+streamlit run ui/app.py
+```
+
+## Configuration
+
+Everything lives in `config.yaml` (non-secret settings) and `.env` (secrets — `OLLAMA_HOST`,
+optional `GROQ_API_KEY`). `.env` is gitignored; only `.env.example` is committed.
+
+Key `config.yaml` fields:
+
+- `provider` — `ollama` or `groq`.
+- `ollama.model` / `groq.model` — leave `ollama.model: null` to auto-pick the first model from
+  `ollama list` on `OLLAMA_HOST`.
+- `embedding.model` — the Ollama model used for RAG embeddings (default `nomic-embed-text`).
+- `max_steps` — hard cap on ReAct steps per turn.
+- `mcp.servers` — list of `{name, command}` MCP stdio servers the agent connects to every turn.
+- `skills.directory` / `skills.max_active_skills` — where Skills live and how many can be active
+  per turn.
+- `rag.*` — chunking, vector/graph store paths, `max_file_size_mb`, and `graph_chunk_cap` (see
+  below).
+
+## Traces
+
+Every `run.py` call or UI turn writes the full Thought/Action/Observation sequence to
+`traces/<timestamp>.json` — see `examples/trace_example.md`. This is the basis for comparing
+models/providers on the same task: run the same question under `provider: ollama` and
+`provider: groq`, diff the `steps`, and look at step count, tool choices, and whether the parser
+had to fall back (non-null `error` field) on either run.
+
+## RAG: vector vs. graph
+
+The UI (`ui/app.py`) can ingest CSV/XLSX/PDF/TXT/DOC/DOCX files (up to `rag.max_file_size_mb`,
+default 50MB) and build either:
+
+- **Vector index** (`rag.mode: vector`) — chunks are embedded with the selected Ollama embedding
+  model and stored in a local, disk-backed Chroma collection. One embedding call per chunk.
+- **Graph index** (`rag.mode: graph`) — each chunk is sent to the *active generation LLM*
+  (whichever provider/model you have selected — no separate NER dependency) to extract
+  `{subject, relation, object}` triples, which build an in-memory `networkx` graph pickled to
+  disk. One full LLM call per chunk, which is much slower and costs more tokens than embedding.
+
+Because graph mode is one LLM call per chunk, the UI shows the estimated chunk count and a
+configurable safety cap (`rag.graph_chunk_cap`, default 200) before building: exceeding the cap
+blocks the build with an explicit message telling you to raise the cap yourself, and even under
+the cap you must explicitly check a confirmation box before the build button is available.
+
+Ingestion registers `query_documents` (vector) or `query_graph` (graph) as MCP tools via
+`tools/rag_server.py`, and `skills/rag_skill.md` is the matching Skill that teaches the router when
+to call them.
+
+## Project structure
+
+```
+agent/            provider-agnostic ReAct loop, prompt builder, skill router, MCP client, parser
+agent/providers/  Provider interface + Ollama and Groq implementations
+skills/           Markdown + YAML-frontmatter Skills (trigger keywords -> tools -> instructions)
+tools/            MCP stdio servers (example dummy tools, RAG query tools)
+ui/               Streamlit app + ingestion/chunking/embedding + Chroma/graph store wrappers
+data/             gitignored — uploaded files and built indexes live here
+traces/           gitignored — one JSON file per agent run
+tests/            pytest suite (parser, both providers with mocked/fake clients)
+examples/         sample trace walkthrough
+```
+
+## Customizing this template
+
+The `agent/` package is domain-agnostic. To adapt this template to a new task you should only
+need to:
+
+1. Write a new MCP server under `tools/` exposing whatever tools your domain needs.
+2. Add a Skill file under `skills/` with trigger keywords and the tool names it should expose.
+3. Add the new server to `mcp.servers` in `config.yaml`.
+4. Upload domain data through the UI (or point `rag.vector_store_dir` at a pre-built index).
+5. Adjust `config.yaml` / `.env` for provider, model, and RAG settings.
+
+Nothing in `agent/core.py`, `agent/prompt_builder.py`, or `agent/skill_router.py` should need to
+change.
+
+## Testing
+
+```bash
+pytest
+```
+
+`tests/test_parser.py` covers the ReAct output parser, including its fail-soft behavior on
+malformed model output. `tests/test_providers.py` verifies both `OllamaProvider` and
+`GroqProvider` implement the shared `Provider` interface correctly, using fake clients — no live
+Ollama server or Groq API key is required to run the suite.
+
+## Design notes worth knowing before you extend this
+
+**Keyword vs. embedding skill matching.** `KeywordRouter` does case-insensitive substring matching
+against explicit trigger phrases — zero dependencies, fully deterministic, and easy to debug (you
+can always see *why* a skill matched). The cost is that it doesn't generalize: a synonym you
+didn't list as a trigger won't match. `BaseSkillRouter` exists specifically so an `EmbeddingRouter`
+(matching by semantic similarity instead of substrings) can be dropped in later without touching
+`agent/core.py` — it only ever calls `.route(user_input)`.
+
+**Why tool filtering is skill-driven.** Dumping every MCP tool's schema into every prompt burns
+context and gives smaller/local models more chances to pick the wrong tool. Gating tool exposure
+behind matched Skills keeps the prompt small and the tool choice constrained to what's actually
+relevant — at the cost of an occasional false negative, which is why unmatched turns fall back to
+exposing every tool rather than stranding the agent.
+
+**Why traces matter.** Local models vary a lot in how reliably they follow the ReAct format and
+how many steps they need. Writing the full Thought/Action/Observation sequence to disk every run
+is what makes "is model A better than model B for this Skill" an answerable, diffable question
+instead of a vibe.
+
+**Why the parser fails soft.** A malformed `Action Input:` or a missing `Final Answer:` from a
+smaller local model shouldn't crash the run — `parse_react_step` always returns a `ReActStep`,
+populating `.error` instead of raising. The agent loop turns that error into a corrective
+Observation ("reformat your response using...") and lets the model try again, which is far more
+robust against weaker models than hard-failing on the first bad output.
+
+**Vector vs. graph RAG on limited hardware.** Vector search is one cheap embedding call per chunk
+and is the right default for "find the relevant passage" questions. Graph extraction is one full
+LLM call per chunk and is much slower and more expensive — but it's the only one of the two that
+can actually answer "how is X related to Y" questions that span multiple chunks. On a mid-spec
+machine, default to vector mode; only reach for graph mode on smaller document sets where you
+specifically need multi-hop relationship queries, and respect `graph_chunk_cap`.
+
+**When to reach for Groq vs. staying local.** Ollama is free, private, and has no rate limits, but
+a mid-spec machine's local models are slower and weaker than hosted ones — expect more ReAct
+parser fallbacks and more steps to reach a Final Answer, especially on smaller models. Groq is
+worth the API key when you need faster wall-clock turnaround or a stronger model's tool-use
+reliability for a specific task, and your data/prompt content is fine leaving the machine. Keep
+`provider: ollama` as the default for anything privacy-sensitive or when you want the zero-API-key
+guarantee this template is built around.

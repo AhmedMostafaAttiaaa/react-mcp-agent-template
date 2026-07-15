@@ -1,0 +1,47 @@
+# Generation provider: "ollama" (fully local, default, zero API keys) or "groq"
+# (optional cloud fallback — needs GROQ_API_KEY in .env). See README.md.
+provider: ollama
+
+ollama:
+  # If null, the first model returned by `ollama list` on OLLAMA_HOST is used.
+  model: null
+
+groq:
+  # Only read when provider: groq. See https://console.groq.com/docs/models for options.
+  model: llama-3.1-8b-instant
+
+embedding:
+  # Embeddings always run locally through Ollama, regardless of the generation provider.
+  provider: ollama
+  model: nomic-embed-text
+
+temperature: 0.2
+max_steps: 8
+
+mcp:
+  servers:
+    - name: example
+      command: ["python", "tools/example_server.py"]
+    - name: rag
+      command: ["python", "tools/rag_server.py"]
+
+skills:
+  directory: skills
+  max_active_skills: 2
+
+logging:
+  traces_dir: traces
+  level: INFO
+
+base_prompt_path: agent/base_prompt.txt
+
+rag:
+  mode: vector # "vector" or "graph"
+  chunk_size: 300 # words per chunk
+  chunk_overlap: 50 # words of overlap between consecutive chunks
+  vector_store_dir: data/vector_store
+  graph_store_path: data/graph_store/graph.pkl
+  max_file_size_mb: 50
+  # Graph mode makes one LLM call per chunk (entity/relationship extraction).
+  # The UI blocks graph builds above this cap until you raise it here yourself.
+  graph_chunk_cap: 200
