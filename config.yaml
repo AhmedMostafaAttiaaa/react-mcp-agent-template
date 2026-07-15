@@ -3,8 +3,11 @@
 provider: ollama
 
 ollama:
-  # If null, the first model returned by `ollama list` on OLLAMA_HOST is used.
-  model: null
+  # If null, the first non-embedding model returned by `ollama list` on OLLAMA_HOST is used.
+  # Left explicit here because this OLLAMA_HOST (see .env) is a shared LAN server that also
+  # hosts non-chat specialist models (OCR/vision-only) — auto-pick can't tell those apart from
+  # a general chat model, so it's pinned to a known-good one instead.
+  model: llama3:latest
 
 groq:
   # Only read when provider: groq. See https://console.groq.com/docs/models for options.

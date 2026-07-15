@@ -19,7 +19,7 @@ import ollama
 from agent.config import load_config
 from agent.core import Agent
 from agent.providers.groq_provider import GroqProvider
-from agent.providers.ollama_provider import OllamaProvider
+from agent.providers.ollama_provider import _DEFAULT_TIMEOUT, OllamaProvider
 from ui.ingestion import build_graph_index, build_vector_index, chunk_text, extract_text, make_ollama_embedder
 from ui.rag_store import GraphStore, VectorStore
 
@@ -32,7 +32,7 @@ OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 def get_ollama_models() -> list:
     try:
-        client = ollama.Client(host=OLLAMA_HOST)
+        client = ollama.Client(host=OLLAMA_HOST, timeout=_DEFAULT_TIMEOUT)
         return [m["model"] for m in client.list()["models"]]
     except Exception:
         return []

@@ -6,10 +6,15 @@ import io
 import json
 from dataclasses import dataclass
 
+import httpx
 import ollama
 import pandas as pd
 from docx import Document
 from pypdf import PdfReader
+
+# See agent/providers/ollama_provider.py — httpx's flat 5s default is too tight
+# once OLLAMA_HOST is a real network host rather than localhost.
+_DEFAULT_TIMEOUT = httpx.Timeout(120.0, connect=30.0)
 
 
 @dataclass
@@ -70,7 +75,7 @@ def chunk_text(text: str, source: str, chunk_size: int, chunk_overlap: int) -> l
 
 
 def make_ollama_embedder(model: str, host: str):
-    client = ollama.Client(host=host)
+    client = ollama.Client(host=host, timeout=_DEFAULT_TIMEOUT)
 
     def embed(text: str) -> list:
         response = client.embeddings(model=model, prompt=text)

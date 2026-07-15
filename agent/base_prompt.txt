@@ -21,6 +21,11 @@ Final Answer: <your response to the user>
 
 Rules:
 - Only call tools listed under "Available tools" below — never invent a tool name.
+- The "Active Skills" section (if present) names a Skill for context only — a Skill's name is
+  NEVER a valid Action, even if it looks related to the task. Only names under "Available tools"
+  can be used as an Action.
 - Action Input must be a single valid JSON object, even for one argument, e.g. {"query": "..."}.
 - If you don't need a tool to answer, skip straight to Final Answer.
 - Never guess or invent what a tool would return — always wait for the real Observation.
+- If an Observation is an error, don't just repeat the error as your Final Answer — either try a
+  corrected Action, or answer using whatever real Observations you already have.

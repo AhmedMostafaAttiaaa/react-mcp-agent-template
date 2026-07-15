@@ -1,9 +1,16 @@
 import os
 from typing import Optional
 
+import httpx
 import ollama
 
 from .base import GenerationResult, Provider
+
+# httpx's default is a flat 5s across connect/read/write/pool, which is too tight
+# once OLLAMA_HOST is a real network host (LAN/VPN) rather than localhost — a slow
+# TCP handshake alone can exceed it. Generation itself can also legitimately take
+# well over a minute for larger local models.
+_DEFAULT_TIMEOUT = httpx.Timeout(120.0, connect=30.0)
 
 
 class OllamaProvider(Provider):
@@ -11,7 +18,7 @@ class OllamaProvider(Provider):
 
     def __init__(self, config: dict):
         self.host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-        self.client = ollama.Client(host=self.host)
+        self.client = ollama.Client(host=self.host, timeout=_DEFAULT_TIMEOUT)
         self.model = config.get("model") or self._first_available_model()
         self.temperature = config.get("temperature")
 

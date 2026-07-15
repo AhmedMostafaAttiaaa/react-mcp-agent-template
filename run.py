@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import sys
 
 from agent.config import load_config
 from agent.core import Agent
@@ -18,6 +19,11 @@ def build_provider(config: dict):
 
 
 def main() -> None:
+    # Windows consoles default to a legacy code page (e.g. cp1252) that can't
+    # encode characters LLMs commonly produce (em dashes, curly quotes, ...).
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(description="Run the ReAct MCP agent on a single question.")
     parser.add_argument("question", help="The question to ask the agent.")
     parser.add_argument("--config", default="config.yaml", help="Path to config.yaml")

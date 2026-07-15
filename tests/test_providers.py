@@ -8,8 +8,9 @@ from agent.providers.ollama_provider import OllamaProvider
 
 
 class DummyOllamaClient:
-    def __init__(self, host=None):
+    def __init__(self, host=None, timeout=None):
         self.host = host
+        self.timeout = timeout
 
     def list(self):
         return {"models": [{"model": "qwen3:4b"}, {"model": "llama3:latest"}]}
