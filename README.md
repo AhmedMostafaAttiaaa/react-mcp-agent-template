@@ -6,6 +6,8 @@ tool schemas they reference, and a provider-agnostic ReAct loop drives Thought/A
 cycles against real MCP tools. A local Streamlit UI adds file upload, vector/graph RAG over your
 own documents, and a live trace view for testing.
 
+![Streamlit UI: document upload, chunking, and a live ReAct trace answering a question over an ingested PDF](docs/screenshots/ui-chat.png)
+
 ## Runs fully offline, zero API keys
 
 With `provider: ollama` in `config.yaml` (the default), this project makes **no external network

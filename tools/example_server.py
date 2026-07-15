@@ -11,6 +11,10 @@ def add(a: float, b: float) -> float:
     """Add two numbers together."""
     return a + b
 
+@mcp.tool()
+def reverse_text(text: str) -> str:
+    """Reverse a string."""
+    return text[::-1]
 
 @mcp.tool()
 def get_current_time() -> str:

@@ -6,10 +6,12 @@ triggers:
   - "what time"
   - "current time"
   - "word count"
+  - "reverse"
   - "count words"
 tools:
   - add
   - get_current_time
+  - reverse_text
   - word_count
 ---
 
