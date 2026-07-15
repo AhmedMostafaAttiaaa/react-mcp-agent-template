@@ -6,6 +6,10 @@ tool schemas they reference, and a provider-agnostic ReAct loop drives Thought/A
 cycles against real MCP tools. A local Streamlit UI adds file upload, vector/graph RAG over your
 own documents, and a live trace view for testing.
 
+## Architecture
+
+![System architecture: user input flows through the Skill Router and Dynamic Prompt Builder into the ReAct Loop, which calls the Ollama/Groq provider and MCP tool servers; a separate ingestion pipeline chunks and embeds uploaded files into a vector or graph store that the RAG MCP server queries](docs/screenshots/architecture-diagram.png)
+
 ![Streamlit UI: document upload, chunking, and a live ReAct trace answering a question over an ingested PDF](docs/screenshots/ui-chat.png)
 
 ## Runs fully offline, zero API keys
