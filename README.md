@@ -12,22 +12,22 @@ own documents, and a live trace view for testing.
 
 ![Streamlit UI: document upload, chunking, and a live ReAct trace answering a question over an ingested PDF](docs/screenshots/ui-chat.png)
 
-## Runs fully offline, zero API keys
+## Providers: Groq by default, or fully offline with Ollama
 
-With `provider: ollama` in `config.yaml` (the default), this project makes **no external network
-calls** — generation and embeddings both go through your local Ollama server, and RAG storage
-(Chroma, networkx) is disk-based. Nothing here requires a GPU or an internet connection.
+The committed default is `provider: groq` in `config.yaml` — hosted inference, fast, needs a free
+`GROQ_API_KEY` in `.env` (get one at https://console.groq.com/keys). `run.py`/the UI only ever
+build a provider for whichever one is selected, so `GroqProvider` is simply never instantiated
+if you switch away from it.
 
-**Groq is entirely optional and generation-only.** It exists as a faster/bigger-model fallback for
-the ReAct loop. If you don't set `GROQ_API_KEY`, the `GroqProvider` class is simply never
-instantiated — `run.py` and the UI only build a provider for whichever one `config.yaml`/the UI
-selects, so an unset Groq key never blocks the ollama path. To use it, add `GROQ_API_KEY` to
-`.env` and set `provider: groq`. To stay fully offline, leave `provider: ollama` and never touch
-`GROQ_API_KEY` at all — the `.env.example` ships with it blank for exactly this reason.
+**Prefer zero API keys and nothing leaving your machine?** Set `provider: ollama` in
+`config.yaml` instead. Generation then goes through your local Ollama server and makes no external
+network calls for that part of the pipeline. Nothing here requires a GPU.
 
-Embeddings for RAG always go through Ollama, regardless of which generation provider you pick —
-Groq is not used for embeddings or for RAG index building unless you also select it as the active
-generation provider for graph extraction.
+**One nuance either way:** embeddings for RAG always go through Ollama, regardless of which
+generation provider is active — Groq is generation-only and is never used for embeddings or for
+building the vector/graph index. So even with `provider: groq`, you still need a reachable Ollama
+host (see `OLLAMA_HOST` in `.env`) for the RAG features specifically; only the ReAct loop's
+generation calls go to Groq.
 
 ## Quickstart
 
@@ -35,11 +35,17 @@ generation provider for graph extraction.
 python -m venv .venv
 source .venv/Scripts/activate   # Windows Git Bash; use .venv\Scripts\activate on cmd/PowerShell
 pip install -r requirements.txt
-cp .env.example .env            # defaults to OLLAMA_HOST=http://localhost:11434
-ollama pull qwen3:4b            # or any model you like — first `ollama list` entry is used by default
-ollama pull nomic-embed-text    # embedding model used by RAG
+cp .env.example .env            # add your GROQ_API_KEY (https://console.groq.com/keys)
+ollama pull nomic-embed-text    # embeddings always run through Ollama, even with provider: groq
 
 python run.py "What's 12 plus 30, and what time is it?"
+```
+
+Prefer fully offline, zero API keys? Set `provider: ollama` in `config.yaml`, then also:
+
+```bash
+ollama pull qwen3:4b            # or any model you like — first non-embedding `ollama list` entry
+                                 # is used by default if ollama.model is left null
 ```
 
 Conda works just as well as venv:
@@ -65,7 +71,8 @@ optional `GROQ_API_KEY`). `.env` is gitignored; only `.env.example` is committed
 
 Key `config.yaml` fields:
 
-- `provider` — `ollama` or `groq`.
+- `provider` — `groq` (committed default, needs `GROQ_API_KEY`) or `ollama` (fully offline, zero
+  API keys).
 - `ollama.model` / `groq.model` — leave `ollama.model: null` to auto-pick the first
   non-embedding model from `ollama list` on `OLLAMA_HOST`. **Caveat:** if `OLLAMA_HOST` is a
   shared host that also serves non-chat specialist models (OCR, vision-only, etc.), auto-pick
@@ -224,8 +231,8 @@ model mid-task. Weaker models benefit from more explicit prompts; don't assume r
 
 **When to reach for Groq vs. staying local.** Ollama is free, private, and has no rate limits, but
 a mid-spec machine's local models are slower and weaker than hosted ones — expect more ReAct
-parser fallbacks and more steps to reach a Final Answer, especially on smaller models. Groq is
-worth the API key when you need faster wall-clock turnaround or a stronger model's tool-use
-reliability for a specific task, and your data/prompt content is fine leaving the machine. Keep
-`provider: ollama` as the default for anything privacy-sensitive or when you want the zero-API-key
-guarantee this template is built around.
+parser fallbacks and more steps to reach a Final Answer, especially on smaller models, and a local
+or LAN Ollama host can simply be unreachable sometimes (network/VPN issues, host down), which is
+exactly the failure mode that made `groq` the more reliable committed default here. Switch to
+`provider: ollama` for anything privacy-sensitive, for genuinely zero-API-key offline use, or when
+you'd rather not depend on an external host's uptime at all.

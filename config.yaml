@@ -1,6 +1,6 @@
-# Generation provider: "ollama" (fully local, default, zero API keys) or "groq"
-# (optional cloud fallback — needs GROQ_API_KEY in .env). See README.md.
-provider: ollama
+# Generation provider: "groq" (hosted, fast, default here — needs GROQ_API_KEY in .env) or
+# "ollama" (fully local, zero API keys, zero network calls outside your own host). See README.md.
+provider: groq
 
 ollama:
   # If null, the first non-embedding model returned by `ollama list` on OLLAMA_HOST is used.
