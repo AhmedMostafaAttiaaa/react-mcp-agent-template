@@ -2,10 +2,13 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .guardrails import InputGuard
 from .mcp_client import MCPClient
 from .parser import parse_react_step
 from .prompt_builder import PromptBuilder
 from .skill_router import KeywordRouter, load_skills
+
+_REFUSAL_MESSAGE = "I can't help with that request."
 
 
 class Agent:
@@ -23,8 +26,33 @@ class Agent:
         self.max_steps = config["max_steps"]
         self.traces_dir = Path(config["logging"]["traces_dir"])
         self.traces_dir.mkdir(parents=True, exist_ok=True)
+        self.guard = InputGuard(config.get("safety", {}).get("blocklist_path", "agent/blocklist.txt"))
 
     async def run(self, user_input: str, on_step=None) -> str:
+        block_reason = self.guard.check_input(user_input)
+        if block_reason is not None:
+            trace = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "user_input": user_input,
+                "blocked": True,
+                "block_reason": block_reason,
+                "final_answer": _REFUSAL_MESSAGE,
+            }
+            self._write_trace(trace)
+            if on_step:
+                on_step(
+                    {
+                        "step": 0,
+                        "thought": "",
+                        "action": None,
+                        "action_input": None,
+                        "final_answer": _REFUSAL_MESSAGE,
+                        "error": None,
+                        "blocked": True,
+                    }
+                )
+            return _REFUSAL_MESSAGE
+
         matched_skills = self.router.route(user_input)
         allowed_tool_names = {t for s in matched_skills for t in s.tools}
 
@@ -87,6 +115,7 @@ class Agent:
                 else:
                     try:
                         observation = await mcp_client.call_tool(step.action, step.action_input or {})
+                        observation = self.guard.sanitize_observation(observation)
                     except Exception as exc:
                         observation = f"Error calling tool '{step.action}': {exc}"
 

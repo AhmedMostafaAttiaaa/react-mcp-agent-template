@@ -7,6 +7,9 @@ venv/
 *.egg-info/
 .DS_Store
 
+# real blocklist terms are private; agent/blocklist.example.txt is the committed template
+agent/blocklist.txt
+
 COMMANDS.md
 PROJECT_GUIDE.md
 RUN.txt

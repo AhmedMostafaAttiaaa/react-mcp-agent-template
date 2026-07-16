@@ -1,0 +1,8 @@
+# Copy this file to agent/blocklist.txt (gitignored) and fill in the terms you
+# actually want blocked — profanity, slurs, or anything else, in any language.
+# One term per line, case-insensitive substring match. Lines starting with '#'
+# are ignored. agent/blocklist.txt is intentionally not committed, so your
+# actual list never ends up in a public repo.
+#
+# Example:
+# example_blocked_word

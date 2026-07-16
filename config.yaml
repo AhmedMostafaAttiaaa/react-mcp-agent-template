@@ -40,6 +40,12 @@ logging:
 
 base_prompt_path: agent/base_prompt.txt
 
+safety:
+  # Terms here (see agent/blocklist.example.txt) plus a fixed set of prompt-injection
+  # patterns are checked before user input ever reaches the LLM. Blocked input short-circuits
+  # the whole ReAct loop with a fixed refusal — no model call happens at all.
+  blocklist_path: agent/blocklist.txt
+
 rag:
   mode: vector # "vector" or "graph"
   chunk_size: 300 # words per chunk
