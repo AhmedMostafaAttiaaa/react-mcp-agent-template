@@ -27,6 +27,8 @@ mcp:
       command: ["python", "tools/example_server.py"]
     - name: rag
       command: ["python", "tools/rag_server.py"]
+    - name: chunking
+      command: ["python", "tools/chunking_server.py"]
 
 skills:
   directory: skills
