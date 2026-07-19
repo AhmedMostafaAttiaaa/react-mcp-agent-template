@@ -11,7 +11,7 @@ ollama:
 
 groq:
   # Only read when provider: groq. See https://console.groq.com/docs/models for options.
-  model: llama-3.1-8b-instant
+  model: openai/gpt-oss-120b
 
 embedding:
   # Embeddings always run locally through Ollama, regardless of the generation provider.

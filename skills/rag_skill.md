@@ -13,6 +13,17 @@ triggers:
   - "who is"
   - "how is"
   - "related to"
+  - "summarize"
+  - "summary"
+  - "the paper"
+  - "the article"
+  - "the report"
+  - "pdf"
+  - "spreadsheet"
+  - "what does it say"
+  - "tell me about"
+  - "explain this"
+  - "overview of"
 tools:
   - query_documents
   - query_graph
