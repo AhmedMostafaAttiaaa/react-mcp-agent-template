@@ -49,7 +49,7 @@ safety:
 rag:
   mode: vector # "vector" or "graph"
   chunk_size: 300 # words per chunk
-  chunk_overlap: 50 # words of overlap between consecutive chunks
+  chunk_overlap: 55 # words of overlap between consecutive chunks
   vector_store_dir: data/vector_store
   graph_store_path: data/graph_store/graph.pkl
   max_file_size_mb: 50
