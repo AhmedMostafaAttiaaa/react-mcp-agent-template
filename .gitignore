@@ -14,6 +14,7 @@ COMMANDS.md
 PROJECT_GUIDE.md
 RUN.txt
 gitcommands.md
+PLAN.md
 
 data/*
 !data/.gitkeep
