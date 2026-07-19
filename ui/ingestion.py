@@ -26,7 +26,7 @@ class Chunk:
 
 def extract_text(filename: str, data: bytes) -> str:
     lower = filename.lower()
-    if lower.endswith(".txt"):
+    if lower.endswith(".txt") or lower.endswith(".md"):
         return data.decode("utf-8", errors="ignore")
     if lower.endswith(".csv"):
         df = pd.read_csv(io.BytesIO(data))

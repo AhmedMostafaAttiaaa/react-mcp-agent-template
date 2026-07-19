@@ -96,7 +96,7 @@ had to fall back (non-null `error` field) on either run.
 
 ## RAG: vector vs. graph
 
-The UI (`ui/app.py`) can ingest CSV/XLSX/PDF/TXT/DOC/DOCX files (up to `rag.max_file_size_mb`,
+The UI (`ui/app.py`) can ingest CSV/XLSX/PDF/TXT/MD/DOC/DOCX files (up to `rag.max_file_size_mb`,
 default 50MB) and build either:
 
 - **Vector index** (`rag.mode: vector`) — chunks are embedded with the selected Ollama embedding
@@ -126,7 +126,7 @@ opens `http://localhost:8501` in your browser. In the sidebar:
 1. Pick a **generation provider** (`ollama`/`groq`) and **model** — the model dropdown is
    populated live from `ollama list` on `OLLAMA_HOST`.
 2. Pick an **embedding model** (e.g. `nomic-embed-text`) and a **RAG mode** (`vector` or `graph`).
-3. **Upload** a csv/xlsx/pdf/txt/doc/docx file (`rag.max_file_size_mb` cap).
+3. **Upload** a csv/xlsx/pdf/txt/md/doc/docx file (`rag.max_file_size_mb` cap).
 4. Click **"1. Parse & chunk"** — shows the resulting chunk count.
 5. Vector mode: click **"2. Build vector index"**. Graph mode: tick the LLM-call-count
    confirmation checkbox, then click **"2. Build graph index"** (blocked above

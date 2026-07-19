@@ -79,7 +79,7 @@ with st.sidebar:
 
     uploaded_files = st.file_uploader(
         "Upload files",
-        type=["csv", "xlsx", "pdf", "txt", "doc", "docx"],
+        type=["csv", "xlsx", "pdf", "txt", "doc", "docx", "md"],
         accept_multiple_files=True,
     )
 
