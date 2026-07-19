@@ -13,6 +13,7 @@ agent/blocklist.txt
 COMMANDS.md
 PROJECT_GUIDE.md
 RUN.txt
+gitcommands.md
 
 data/*
 !data/.gitkeep
