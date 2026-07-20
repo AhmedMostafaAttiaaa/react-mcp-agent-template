@@ -1,13 +1,13 @@
-# Generation provider: "groq" (hosted, fast, default here — needs GROQ_API_KEY in .env) or
-# "ollama" (fully local, zero API keys, zero network calls outside your own host). See README.md.
-provider: groq
+# Generation provider: "ollama" (fully local, zero API keys, zero network calls outside your own
+# host — the default here) or "groq" (hosted, fast, needs GROQ_API_KEY in .env). See README.md.
+provider: ollama
 
 ollama:
   # If null, the first non-embedding model returned by `ollama list` on OLLAMA_HOST is used.
   # Left explicit here because this OLLAMA_HOST (see .env) is a shared LAN server that also
   # hosts non-chat specialist models (OCR/vision-only) — auto-pick can't tell those apart from
   # a general chat model, so it's pinned to a known-good one instead.
-  model: llama3:latest
+  model: qwen3.6:35b
 
 groq:
   # Only read when provider: groq. See https://console.groq.com/docs/models for options.
@@ -29,6 +29,10 @@ mcp:
       command: ["python", "tools/rag_server.py"]
     - name: chunking
       command: ["python", "tools/chunking_server.py"]
+    - name: text_stats
+      command: ["python", "tools/text_stats_server.py"]
+    - name: text_clean
+      command: ["python", "tools/text_clean_server.py"]
 
 skills:
   directory: skills

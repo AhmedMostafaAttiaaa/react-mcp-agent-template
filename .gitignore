@@ -21,3 +21,8 @@ data/*
 
 traces/*
 !traces/.gitkeep
+
+# Claude Code session transcripts. Machine-generated, huge, and they log whatever
+# scrolled through the terminal — including secrets echoed during debugging.
+# One of these was caught by GitHub push protection on 2026-07-20.
+*.jsonl
