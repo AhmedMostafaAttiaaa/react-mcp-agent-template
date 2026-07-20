@@ -26,3 +26,6 @@ traces/*
 # scrolled through the terminal — including secrets echoed during debugging.
 # One of these was caught by GitHub push protection on 2026-07-20.
 *.jsonl
+
+# Per-conversation CSV log (query/answer/model/skills). Local personal history.
+conversations/

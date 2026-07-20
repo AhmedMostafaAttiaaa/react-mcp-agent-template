@@ -41,6 +41,10 @@ skills:
 logging:
   traces_dir: traces
   level: INFO
+  # Append a one-row-per-conversation CSV log here: query, answer, model, skills,
+  # tools used. Human-readable companion to the full JSON traces. Set to null to
+  # disable.
+  conversations_csv: conversations/conversations.csv
 
 base_prompt_path: agent/base_prompt.txt
 

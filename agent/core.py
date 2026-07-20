@@ -1,3 +1,4 @@
+import csv
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,6 +27,12 @@ class Agent:
         self.max_steps = config["max_steps"]
         self.traces_dir = Path(config["logging"]["traces_dir"])
         self.traces_dir.mkdir(parents=True, exist_ok=True)
+        csv_path = config["logging"].get("conversations_csv")
+        self.conversations_csv = Path(csv_path) if csv_path else None
+        # Model name for the log. Both providers expose .model; fall back to the
+        # provider name if a future provider doesn't. A per-run generate() may
+        # override this (Ollama auto-select), captured live in run().
+        self.model_name = getattr(self.provider, "model", config.get("provider", "unknown"))
         self.guard = InputGuard(config.get("safety", {}).get("blocklist_path", "agent/blocklist.txt"))
 
     async def run(self, user_input: str, on_step=None) -> str:
@@ -39,6 +46,13 @@ class Agent:
                 "final_answer": _REFUSAL_MESSAGE,
             }
             self._write_trace(trace)
+            self._append_csv(
+                query=user_input,
+                answer=_REFUSAL_MESSAGE,
+                model="(blocked — no model call)",
+                skills=[],
+                tools=[],
+            )
             if on_step:
                 on_step(
                     {
@@ -82,10 +96,13 @@ class Agent:
 
             scratchpad = ""
             final_answer = None
+            model_used = self.model_name
+            tools_used = []
 
             for step_num in range(1, self.max_steps + 1):
                 prompt = self.prompt_builder.build(user_input, matched_skills, tool_dicts, scratchpad)
                 result = self.provider.generate(prompt, stop=["Observation:"])
+                model_used = result.model or model_used
                 step = parse_react_step(result.text)
 
                 step_record = {
@@ -116,6 +133,7 @@ class Agent:
                     try:
                         observation = await mcp_client.call_tool(step.action, step.action_input or {})
                         observation = self.guard.sanitize_observation(observation)
+                        tools_used.append(step.action)
                     except Exception as exc:
                         observation = f"Error calling tool '{step.action}': {exc}"
 
@@ -139,7 +157,38 @@ class Agent:
 
         trace["final_answer"] = final_answer
         self._write_trace(trace)
+        self._append_csv(
+            query=user_input,
+            answer=final_answer,
+            model=model_used,
+            skills=[s.name for s in matched_skills],
+            tools=tools_used,
+        )
         return final_answer
+
+    _CSV_HEADER = ["timestamp", "model", "query", "answer", "skills", "tools_used"]
+
+    def _append_csv(self, query, answer, model, skills, tools) -> None:
+        """Append one row per conversation to the CSV log. Writes the header first
+        if the file is new. Uses csv.writer so quotes/newlines/commas inside the
+        query or answer are escaped correctly rather than corrupting columns."""
+        if self.conversations_csv is None:
+            return
+        self.conversations_csv.parent.mkdir(parents=True, exist_ok=True)
+        write_header = not self.conversations_csv.exists()
+        # newline="" is required on Windows so csv doesn't emit blank rows.
+        with self.conversations_csv.open("a", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            if write_header:
+                writer.writerow(self._CSV_HEADER)
+            writer.writerow([
+                datetime.now(timezone.utc).isoformat(),
+                model,
+                query,
+                answer,
+                ", ".join(skills),
+                ", ".join(tools),
+            ])
 
     def _write_trace(self, trace: dict) -> None:
         filename = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + "Z.json"
