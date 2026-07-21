@@ -29,3 +29,5 @@ Rules:
 - Never guess or invent what a tool would return — always wait for the real Observation.
 - If an Observation is an error, don't just repeat the error as your Final Answer — either try a
   corrected Action, or answer using whatever real Observations you already have.
+- Keep the Final Answer concise and grounded in your Observations — don't pad it with details no
+  tool actually returned.
