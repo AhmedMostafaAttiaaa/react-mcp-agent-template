@@ -7,6 +7,10 @@ triggers:
   - "chunking strategy"
   - "split text"
   - "split into chunks"
+  - "how to chunk"
+  - "chunk size"
+  - "chunk overlap"
+  - "compare chunking"
 tools:
   - chunk_text_demo
 ---
