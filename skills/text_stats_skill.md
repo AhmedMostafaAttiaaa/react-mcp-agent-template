@@ -10,6 +10,10 @@ triggers:
   - "keywords"
   - "how many chunks"
   - "estimate chunks"
+  - "text length"
+  - "word count"
+  - "top words"
+  - "most common words"
 tools:
   - analyze_text
   - estimate_chunks
