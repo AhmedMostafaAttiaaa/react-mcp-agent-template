@@ -9,6 +9,10 @@ triggers:
   - "remove duplicate lines"
   - "tidy up this text"
   - "messy text"
+  - "collapse whitespace"
+  - "strip whitespace"
+  - "deduplicate lines"
+  - "remove repeated lines"
 tools:
   - clean_text
 ---
