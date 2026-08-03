@@ -33,6 +33,8 @@ mcp:
       command: ["python", "tools/text_stats_server.py"]
     - name: text_clean
       command: ["python", "tools/text_clean_server.py"]
+    - name: text_case
+      command: ["python", "tools/text_case_server.py"]
 
 skills:
   directory: skills
