@@ -39,6 +39,8 @@ mcp:
       command: ["python", "tools/hashing_server.py"]
     - name: extract
       command: ["python", "tools/extract_server.py"]
+    - name: token_estimate
+      command: ["python", "tools/token_estimate_server.py"]
 
 skills:
   directory: skills
