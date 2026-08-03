@@ -37,6 +37,8 @@ mcp:
       command: ["python", "tools/text_case_server.py"]
     - name: hashing
       command: ["python", "tools/hashing_server.py"]
+    - name: extract
+      command: ["python", "tools/extract_server.py"]
 
 skills:
   directory: skills
