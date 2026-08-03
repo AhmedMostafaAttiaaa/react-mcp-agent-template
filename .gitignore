@@ -29,3 +29,6 @@ traces/*
 
 # Per-conversation CSV log (query/answer/model/skills). Local personal history.
 conversations/
+
+# Personal project-overview note, kept in sync by hand. Not part of the public repo.
+ABOUT.md
