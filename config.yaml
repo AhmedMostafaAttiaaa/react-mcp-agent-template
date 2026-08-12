@@ -47,6 +47,8 @@ mcp:
       command: ["python", "tools/base64_server.py"]
     - name: diff_tool
       command: ["python", "tools/diff_server.py"]
+    - name: redact
+      command: ["python", "tools/redact_server.py"]
 
 skills:
   directory: skills
