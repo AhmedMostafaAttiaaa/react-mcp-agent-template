@@ -1,6 +1,6 @@
 # Generation provider: "ollama" (fully local, zero API keys, zero network calls outside your own
 # host — the default here) or "groq" (hosted, fast, needs GROQ_API_KEY in .env). See README.md.
-provider: groq
+provider: ollama
 
 ollama:
   # If null, the first non-embedding model returned by `ollama list` on OLLAMA_HOST is used.
@@ -41,6 +41,8 @@ mcp:
       command: ["python", "tools/extract_server.py"]
     - name: token_estimate
       command: ["python", "tools/token_estimate_server.py"]
+    - name: json_tools
+      command: ["python", "tools/json_tools_server.py"]
 
 skills:
   directory: skills
