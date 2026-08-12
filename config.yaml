@@ -45,6 +45,8 @@ mcp:
       command: ["python", "tools/json_tools_server.py"]
     - name: base64_tool
       command: ["python", "tools/base64_server.py"]
+    - name: diff_tool
+      command: ["python", "tools/diff_server.py"]
 
 skills:
   directory: skills
