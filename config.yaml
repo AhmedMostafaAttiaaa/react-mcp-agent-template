@@ -43,6 +43,8 @@ mcp:
       command: ["python", "tools/token_estimate_server.py"]
     - name: json_tools
       command: ["python", "tools/json_tools_server.py"]
+    - name: base64_tool
+      command: ["python", "tools/base64_server.py"]
 
 skills:
   directory: skills
