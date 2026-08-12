@@ -49,6 +49,8 @@ mcp:
       command: ["python", "tools/diff_server.py"]
     - name: redact
       command: ["python", "tools/redact_server.py"]
+    - name: sort_lines
+      command: ["python", "tools/sort_server.py"]
 
 skills:
   directory: skills
