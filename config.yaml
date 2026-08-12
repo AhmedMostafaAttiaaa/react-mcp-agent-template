@@ -53,6 +53,8 @@ mcp:
       command: ["python", "tools/sort_server.py"]
     - name: id_gen
       command: ["python", "tools/id_gen_server.py"]
+    - name: slugify
+      command: ["python", "tools/slugify_server.py"]
 
 skills:
   directory: skills
