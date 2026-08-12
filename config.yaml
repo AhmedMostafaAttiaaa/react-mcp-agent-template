@@ -51,6 +51,8 @@ mcp:
       command: ["python", "tools/redact_server.py"]
     - name: sort_lines
       command: ["python", "tools/sort_server.py"]
+    - name: id_gen
+      command: ["python", "tools/id_gen_server.py"]
 
 skills:
   directory: skills
